@@ -2,7 +2,6 @@ import { GamepadIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export function Navbar() {
-
   return <header className="bg-background border-b px-4 lg:px-6 h-14 flex items-center justify-between">
     <Link to="#" className="flex items-center gap-2"
     // prefetch={false}
