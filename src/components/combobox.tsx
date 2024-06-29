@@ -20,9 +20,9 @@ import {
 } from "@/components/ui/popover"
 
 
-export function Combobox({ title, options }: { title: string, options: { label: string, value: string }[] }) {
+export function Combobox<T>({ title, options, value, setValue }: { title: string, options: readonly { label: string, value: string }[], value: T, setValue: React.Dispatch<React.SetStateAction<T>> }) {
   const [open, setOpen] = React.useState(false)
-  const [value, setValue] = React.useState("")
+  // const [value, setValue] = React.useState("")
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
