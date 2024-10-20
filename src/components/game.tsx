@@ -105,7 +105,7 @@ type GameContextType = {
 // Context Setup
 const GameContext = createContext<GameContextType | null>(null);
 
-export function useGameContext() {
+function useGameContext() {
   return useContext(GameContext)!;
 }
 
@@ -367,7 +367,6 @@ function Game() {
     setScore,
     results,
     setResults,
-    originalChapters,
     defaultChapters,
   } = useGameContext();
 
