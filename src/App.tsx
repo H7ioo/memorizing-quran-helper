@@ -1,11 +1,8 @@
-import {
-  createBrowserRouter,
-  RouterProvider,
-} from "react-router-dom";
-import Root from './routes/root.tsx';
-import ErrorPage from './error-page.tsx';
-import { Game } from './components/game.tsx';
-import { Hero } from './components/hero.tsx';
+import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import Root from "./routes/root.tsx";
+import ErrorPage from "./error-page.tsx";
+import { GameMenu } from "./components/game.tsx";
+import { Hero } from "./components/hero.tsx";
 
 const router = createBrowserRouter([
   {
@@ -16,16 +13,14 @@ const router = createBrowserRouter([
       { index: true, element: <Hero /> },
       {
         path: "game/",
-        element: <Game />
-      }
-    ]
+        element: <GameMenu />,
+      },
+    ],
   },
 ]);
 
 function App() {
-  return (
-    <RouterProvider router={router} />
-  )
+  return <RouterProvider router={router} />;
 }
 
-export default App
+export default App;
