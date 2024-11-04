@@ -1,5 +1,6 @@
 import {
   createContext,
+  memo,
   useCallback,
   useContext,
   useEffect,
@@ -12,6 +13,7 @@ import { Combobox } from "./combobox";
 import { cn } from "@/lib/utils";
 import CHAPTERS from "@/data/chapters-en.json";
 import { Checkbox } from "./ui/checkbox";
+import { toast } from "sonner";
 
 type Chapter = {
   chapterName: string;
@@ -246,7 +248,6 @@ function GameSetup() {
           value={gameMode}
           setValue={setGameMode}
         />
-        <ChapterSelection />
       </div>
       <Button
         className="w-[200px]"
@@ -260,9 +261,11 @@ function GameSetup() {
       >
         Start
       </Button>
+      <div className="line h-0.5 bg-white w-[200px]"></div>
+      <MemoizedChapterSelection />
       {defaultChapters.length < 3 && (
         <span className="text-xs text-red-600">
-          You should select at least 3 chapters
+          You should select at least 3 chapters to start the game
         </span>
       )}
     </>
@@ -278,82 +281,112 @@ export function ChapterSelection() {
     if (preferences) {
       setSelectedChapters(JSON.parse(preferences));
     } else {
-      // Default to the original chapters
       setSelectedChapters(
-        originalChapters.map((chapter) => chapter.chapterNumber),
+        originalChapters.map((chapter) => chapter.chapterNumber)
       );
     }
   }, [originalChapters]);
 
-  const handleCheckboxChange = (chapterNumber: number) => {
-    setSelectedChapters((prev) => {
-      if (prev.includes(chapterNumber)) {
-        return prev.filter((number) => number !== chapterNumber);
-      } else {
-        return [...prev, chapterNumber];
-      }
-    });
-  };
-
-  const applyChanges = () => {
-    // TODO: toast changes applied
-    localStorage.setItem(
-      "chaptersPreferences",
-      JSON.stringify(selectedChapters),
+  const handleCheckboxChange = useCallback((chapterNumber: number) => {
+    setSelectedChapters((prev) =>
+      prev.includes(chapterNumber)
+        ? prev.filter((number) => number !== chapterNumber)
+        : [...prev, chapterNumber]
     );
+  }, []);
+
+  const handleJuzClick = (juz: number, isChecked: boolean) => {
+    if (isChecked) {
+      const chapterIds = CHAPTERS.filter(chapter => chapter.juz === juz).map(chapter => chapter.id);
+      setSelectedChapters(prev => [...prev, ...chapterIds]);
+    } else {
+      const chapterIds = CHAPTERS.filter(chapter => selectedChapters.includes(chapter.id) && chapter.juz !== juz).map(chapter => chapter.id)
+      setSelectedChapters(chapterIds);
+    }
+  }
+
+  const applyChanges = useCallback(() => {
+    localStorage.setItem("chaptersPreferences", JSON.stringify(selectedChapters));
     setDefaultChapters(
       originalChapters.filter((chapter) =>
-        selectedChapters.includes(chapter.chapterNumber),
-      ),
+        selectedChapters.includes(chapter.chapterNumber)
+      )
     );
-  };
+    toast("Chapters changed successfully", { duration: 1500 })
+  }, [selectedChapters, originalChapters, setDefaultChapters]);
 
-  const selectAll = () => {
-    setSelectedChapters(
-      originalChapters.map((chapter) => chapter.chapterNumber),
-    );
-  };
+  const selectAll = useCallback(() => {
+    setSelectedChapters(originalChapters.map((chapter) => chapter.chapterNumber));
+  }, [originalChapters]);
 
-  const deselectAll = () => {
+  const deselectAll = useCallback(() => {
     setSelectedChapters([]);
-  };
+  }, []);
 
-  return (
-    <div className="max-h-60 overflow-y-auto rounded border p-4">
-      <div className="mb-2 flex justify-between gap-2">
-        <Button onClick={selectAll} variant="outline" size="sm">
-          Select All
-        </Button>
-        <Button onClick={deselectAll} variant="outline" size="sm">
-          Deselect All
-        </Button>
-      </div>
-      {CHAPTERS.map((chapter) => (
-        <div className="flex items-center space-x-2" key={chapter.id}>
-          <Checkbox
-            id={`chapter-${chapter.id}`}
-            checked={selectedChapters.includes(chapter.id)}
-            onCheckedChange={() => handleCheckboxChange(chapter.id)}
-          />
-          <label
-            htmlFor={`chapter-${chapter.id}`}
-            className="cursor-pointer text-sm font-medium"
-          >
-            {chapter.name}
-          </label>
-        </div>
-      ))}
-      <Button
-        onClick={applyChanges}
-        variant="outline"
-        size="sm"
-        className="mt-2"
-      >
-        Apply Changes
+  const juzArray = useMemo(() => Array.from({ length: 30 }, (_, i) => i + 1), []); // Remove 2&5. Juz because it is empty. Nevermind
+  const chapterGroups = useMemo(() => {
+    return juzArray.map((juz) => ({
+      juz,
+      chapters: CHAPTERS.filter((chapter) => chapter.juz === juz),
+    }));
+  }, [juzArray]);
+
+  return (<div className="w-[200px]">
+    <div className="mb-2 flex justify-between gap-1">
+      <Button onClick={selectAll} variant="outline">
+        Select All
+      </Button>
+      <Button onClick={deselectAll} variant="outline">
+        Deselect All
       </Button>
     </div>
-  );
+    <div className="max-h-[350px] overflow-y-auto rounded border p-4">
+      {chapterGroups.map(({ juz, chapters }) => {
+
+        return <>
+          <div className="flex items-center space-x-2 my-2 first-of-type:mt-0" key={juz}>
+            <Checkbox className="h-8 w-8 transition" disabled={chapters.length === 0} id={`juz-${juz}`} checked={chapters.length !== 0 && chapters.every(chapter => selectedChapters.includes(chapter.id))} onCheckedChange={(isChecked) => handleJuzClick(juz, isChecked as boolean)} /> {/*TODO: as boolean*/}
+            <label
+              htmlFor={`juz-${juz}`}
+              className={cn("cursor-pointer text-md font-medium", { "line-through cursor-not-allowed": chapters.length === 0 })}
+            >
+              الجزء {juz}
+            </label>
+          </div>
+          {
+            chapters.map((chapter) => (
+              <div className="ml-8 flex items-center space-x-2 mt-1" key={chapter.id}>
+                <Checkbox
+                  className="h-6 w-6 transition"
+                  id={`chapter-${chapter.id}`}
+                  checked={selectedChapters.includes(chapter.id)}
+                  onCheckedChange={() => handleCheckboxChange(chapter.id)}
+                />
+                <label
+                  htmlFor={`chapter-${chapter.id}`}
+                  className="cursor-pointer text-md font-medium"
+                >
+                  {chapter.name}
+                </label>
+              </div>
+            ))
+          }
+
+        </>
+      }
+      )}
+    </div>
+    <Button
+      onClick={applyChanges}
+      variant="outline"
+      className="mt-2 w-full"
+    >
+      Apply Changes
+    </Button>
+  </div>);
 }
+
+export const MemoizedChapterSelection = memo(ChapterSelection);
 
 function Game() {
   const {
