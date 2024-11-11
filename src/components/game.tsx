@@ -506,7 +506,9 @@ function Game() {
         setScore((prevScore) => prevScore + 1);
       }
     } else {
-      if (playerAnswer.toLowerCase() === correctAnswer.toLowerCase()) {
+      if (
+        playerAnswer.toLowerCase().trim() === correctAnswer.toLowerCase().trim()
+      ) {
         setScore((prevScore) => prevScore + 1);
       }
     }
