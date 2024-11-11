@@ -561,7 +561,11 @@ function Game() {
         {gameMode === "input" ? (
           <Input
             ref={inputRef}
-            type="number"
+            type={
+              answerType === "chapterNumber" || answerType === "versesNumber"
+                ? "number"
+                : "text"
+            }
             value={playerAnswer}
             onChange={(e) => setPlayerAnswer(e.target.value)}
             placeholder={`Your answer for ${answerLabel?.toLowerCase()}`}
