@@ -5,6 +5,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { Button } from "./ui/button";
@@ -443,6 +444,8 @@ function Game() {
 
   const currentQuestion = chapters[currentIndex];
 
+  const inputRef = useRef<HTMLInputElement | null>(null);
+
   const createOptions = useCallback(
     (correctAnswer: string) => {
       const incorrectAnswers: string[] = [];
@@ -518,6 +521,10 @@ function Game() {
       setGameState(GameState.Done);
     }
 
+    // If inputRef exists (which means game mode is input) focus on it
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
     setPlayerAnswer("");
     setSelectedAnswer(null);
   }, [
@@ -553,9 +560,12 @@ function Game() {
       >
         {gameMode === "input" ? (
           <Input
+            ref={inputRef}
+            type="number"
             value={playerAnswer}
             onChange={(e) => setPlayerAnswer(e.target.value)}
             placeholder={`Your answer for ${answerLabel?.toLowerCase()}`}
+            autoFocus
           />
         ) : (
           <>
