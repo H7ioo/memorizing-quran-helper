@@ -261,7 +261,7 @@ function GameSetup() {
       >
         Start
       </Button>
-      <div className="line h-0.5 bg-white w-[200px]"></div>
+      <div className="line h-0.5 w-[200px] bg-white"></div>
       <MemoizedChapterSelection />
       {defaultChapters.length < 3 && (
         <span className="text-xs text-red-600">
@@ -282,7 +282,7 @@ export function ChapterSelection() {
       setSelectedChapters(JSON.parse(preferences));
     } else {
       setSelectedChapters(
-        originalChapters.map((chapter) => chapter.chapterNumber)
+        originalChapters.map((chapter) => chapter.chapterNumber),
       );
     }
   }, [originalChapters]);
@@ -291,39 +291,52 @@ export function ChapterSelection() {
     setSelectedChapters((prev) =>
       prev.includes(chapterNumber)
         ? prev.filter((number) => number !== chapterNumber)
-        : [...prev, chapterNumber]
+        : [...prev, chapterNumber],
     );
   }, []);
 
   const handleJuzClick = (juz: number, isChecked: boolean) => {
     if (isChecked) {
-      const chapterIds = CHAPTERS.filter(chapter => chapter.juz === juz).map(chapter => chapter.id);
-      setSelectedChapters(prev => [...prev, ...chapterIds]);
+      const chapterIds = CHAPTERS.filter((chapter) => chapter.juz === juz).map(
+        (chapter) => chapter.id,
+      );
+      setSelectedChapters((prev) => [...prev, ...chapterIds]);
     } else {
-      const chapterIds = CHAPTERS.filter(chapter => selectedChapters.includes(chapter.id) && chapter.juz !== juz).map(chapter => chapter.id)
+      const chapterIds = CHAPTERS.filter(
+        (chapter) =>
+          selectedChapters.includes(chapter.id) && chapter.juz !== juz,
+      ).map((chapter) => chapter.id);
       setSelectedChapters(chapterIds);
     }
-  }
+  };
 
   const applyChanges = useCallback(() => {
-    localStorage.setItem("chaptersPreferences", JSON.stringify(selectedChapters));
+    localStorage.setItem(
+      "chaptersPreferences",
+      JSON.stringify(selectedChapters),
+    );
     setDefaultChapters(
       originalChapters.filter((chapter) =>
-        selectedChapters.includes(chapter.chapterNumber)
-      )
+        selectedChapters.includes(chapter.chapterNumber),
+      ),
     );
-    toast("Chapters changed successfully", { duration: 1500 })
+    toast("Chapters changed successfully", { duration: 1500 });
   }, [selectedChapters, originalChapters, setDefaultChapters]);
 
   const selectAll = useCallback(() => {
-    setSelectedChapters(originalChapters.map((chapter) => chapter.chapterNumber));
+    setSelectedChapters(
+      originalChapters.map((chapter) => chapter.chapterNumber),
+    );
   }, [originalChapters]);
 
   const deselectAll = useCallback(() => {
     setSelectedChapters([]);
   }, []);
 
-  const juzArray = useMemo(() => Array.from({ length: 30 }, (_, i) => i + 1), []); // Remove 2&5. Juz because it is empty. Nevermind
+  const juzArray = useMemo(
+    () => Array.from({ length: 30 }, (_, i) => i + 1),
+    [],
+  ); // Remove 2&5. Juz because it is empty. Nevermind
   const chapterGroups = useMemo(() => {
     return juzArray.map((juz) => ({
       juz,
@@ -331,59 +344,76 @@ export function ChapterSelection() {
     }));
   }, [juzArray]);
 
-  return (<div className="w-[200px]">
-    <div className="mb-2 flex justify-between gap-1">
-      <Button onClick={selectAll} variant="outline">
-        Select All
-      </Button>
-      <Button onClick={deselectAll} variant="outline">
-        Deselect All
-      </Button>
-    </div>
-    <div className="max-h-[350px] overflow-y-auto rounded border p-4">
-      {chapterGroups.map(({ juz, chapters }) => {
-
-        return <>
-          <div className="flex items-center space-x-2 my-2 first-of-type:mt-0" key={juz}>
-            <Checkbox className="h-8 w-8 transition" disabled={chapters.length === 0} id={`juz-${juz}`} checked={chapters.length !== 0 && chapters.every(chapter => selectedChapters.includes(chapter.id))} onCheckedChange={(isChecked) => handleJuzClick(juz, isChecked as boolean)} /> {/*TODO: as boolean*/}
-            <label
-              htmlFor={`juz-${juz}`}
-              className={cn("cursor-pointer text-md font-medium", { "line-through cursor-not-allowed": chapters.length === 0 })}
-            >
-              الجزء {juz}
-            </label>
-          </div>
-          {
-            chapters.map((chapter) => (
-              <div className="ml-8 flex items-center space-x-2 mt-1" key={chapter.id}>
+  return (
+    <div className="w-[200px]">
+      <div className="mb-2 flex justify-between gap-1">
+        <Button onClick={selectAll} variant="outline">
+          Select All
+        </Button>
+        <Button onClick={deselectAll} variant="outline">
+          Deselect All
+        </Button>
+      </div>
+      <div className="max-h-[350px] overflow-y-auto rounded border p-4">
+        {chapterGroups.map(({ juz, chapters }) => {
+          return (
+            <>
+              <div
+                className="my-2 flex items-center space-x-2 first-of-type:mt-0"
+                key={juz}
+              >
                 <Checkbox
-                  className="h-6 w-6 transition"
-                  id={`chapter-${chapter.id}`}
-                  checked={selectedChapters.includes(chapter.id)}
-                  onCheckedChange={() => handleCheckboxChange(chapter.id)}
-                />
+                  className="h-8 w-8 transition"
+                  disabled={chapters.length === 0}
+                  id={`juz-${juz}`}
+                  checked={
+                    chapters.length !== 0 &&
+                    chapters.every((chapter) =>
+                      selectedChapters.includes(chapter.id),
+                    )
+                  }
+                  onCheckedChange={(isChecked) =>
+                    handleJuzClick(juz, isChecked as boolean)
+                  }
+                />{" "}
+                {/*TODO: as boolean*/}
                 <label
-                  htmlFor={`chapter-${chapter.id}`}
-                  className="cursor-pointer text-md font-medium"
+                  htmlFor={`juz-${juz}`}
+                  className={cn("text-md cursor-pointer font-medium", {
+                    "cursor-not-allowed line-through": chapters.length === 0,
+                  })}
                 >
-                  {chapter.name}
+                  الجزء {juz}
                 </label>
               </div>
-            ))
-          }
-
-        </>
-      }
-      )}
+              {chapters.map((chapter) => (
+                <div
+                  className="ml-8 mt-1 flex items-center space-x-2"
+                  key={chapter.id}
+                >
+                  <Checkbox
+                    className="h-6 w-6 transition"
+                    id={`chapter-${chapter.id}`}
+                    checked={selectedChapters.includes(chapter.id)}
+                    onCheckedChange={() => handleCheckboxChange(chapter.id)}
+                  />
+                  <label
+                    htmlFor={`chapter-${chapter.id}`}
+                    className="text-md cursor-pointer font-medium"
+                  >
+                    {chapter.name}
+                  </label>
+                </div>
+              ))}
+            </>
+          );
+        })}
+      </div>
+      <Button onClick={applyChanges} variant="outline" className="mt-2 w-full">
+        Apply Changes
+      </Button>
     </div>
-    <Button
-      onClick={applyChanges}
-      variant="outline"
-      className="mt-2 w-full"
-    >
-      Apply Changes
-    </Button>
-  </div>);
+  );
 }
 
 export const MemoizedChapterSelection = memo(ChapterSelection);
@@ -563,8 +593,8 @@ function Game() {
 }
 
 function GameOver() {
-  const { resetGame, results, score, originalChapters } = useGameContext();
-  const totalQuestions = originalChapters.length; // Use originalChapters for total
+  const { resetGame, results, score, defaultChapters } = useGameContext();
+  const totalQuestions = defaultChapters.length; // Use originalChapters for total
 
   return (
     <div className="w-full max-w-md space-y-4 rounded-lg bg-slate-900 p-8 text-center shadow-lg">
