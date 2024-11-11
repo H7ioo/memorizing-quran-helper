@@ -3,6 +3,7 @@ import Root from "./routes/root.tsx";
 import ErrorPage from "./error-page.tsx";
 import { GameMenu } from "./components/game.tsx";
 import { Hero } from "./components/hero.tsx";
+import { Fahras } from "./components/fahras.tsx";
 
 const router = createBrowserRouter([
   {
@@ -14,6 +15,10 @@ const router = createBrowserRouter([
       {
         path: "game/",
         element: <GameMenu />,
+      },
+      {
+        path: "fahras/",
+        element: <Fahras />,
       },
     ],
   },

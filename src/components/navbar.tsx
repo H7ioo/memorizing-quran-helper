@@ -2,24 +2,39 @@ import { GamepadIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 
 export function Navbar() {
-  return <header className="bg-background border-b px-4 lg:px-6 h-14 flex items-center justify-between">
-    <Link to="#" className="flex items-center gap-2"
-    // prefetch={false}
-    >
-      <GamepadIcon className="h-6 w-6" />
-      <span className="text-lg font-semibold hidden sm:block">Memorize Quran Helper</span>
-    </Link>
-    <nav className="flex items-center gap-4">
-      <Link to="/game" className="text-sm font-medium hover:underline underline-offset-4"
-      // prefetch={false}
+  return (
+    <header className="flex h-14 items-center justify-between border-b bg-background px-4 lg:px-6">
+      <Link
+        to="#"
+        className="flex items-center gap-2"
+        // prefetch={false}
       >
-        Play Game
+        <GamepadIcon className="h-6 w-6" />
+        <span className="hidden text-lg font-semibold sm:block">
+          Memorize Quran Helper
+        </span>
       </Link>
-      <Link to="/prefrence" className="text-sm font-medium hover:underline underline-offset-4"
+      <nav className="flex items-center gap-4">
+        <Link
+          to="/game"
+          className="text-sm font-medium underline-offset-4 hover:underline"
+          // prefetch={false}
+        >
+          Play Game
+        </Link>
+        <Link
+          to="/fahras"
+          className="text-sm font-medium underline-offset-4 hover:underline"
+          // prefetch={false}
+        >
+          Fahras
+        </Link>
+        {/* <Link to="/prefrence" className="text-sm font-medium hover:underline underline-offset-4"
       // prefetch={false}
       >
         Customize
-      </Link>
-    </nav>
-  </header>
+      </Link> */}
+      </nav>
+    </header>
+  );
 }
