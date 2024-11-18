@@ -188,8 +188,6 @@ const columns: ColumnDef<QuranChapter>[] = [
   },
 ];
 
-// TODO: Virtualize using useVirtualizer
-
 export function Fahras() {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
