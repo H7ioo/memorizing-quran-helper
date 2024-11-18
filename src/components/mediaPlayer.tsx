@@ -18,7 +18,7 @@ import { CardContent } from "@/components/ui/card";
 import { Label } from "./ui/label";
 
 export function MediaPlayer() {
-  const [file, setFile] = useState<File>();
+  // const [file, setFile] = useState<File>();
   const [mediaURL, setMediaURL] = useState<string>("");
 
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -65,7 +65,7 @@ export default function AudioPlayer({
   const [loop, setLoop] = useState(false);
   const [startTime, setStartTime] = useState(0);
   const [endTime, setEndTime] = useState(0);
-  const [isEnded, setIsEnded] = useState(false);
+  const [_isEnded, setIsEnded] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
 
   useEffect(() => {
@@ -202,6 +202,8 @@ export default function AudioPlayer({
   // TODO: Under "Start Time" & "End Time" add a button "Set to Current Time"
   // TODO: Save to localstorage [{id: number, name: string, path: string, startTime: number, endTime: number}]
   // TODO: Show saved files and locations with delete, edit (opens files to select a new file) etc. & select name. Improve over the idea
+  // TODO: Repeat X Times
+  // TODO: Repeat for 15 minutes w/ countdown
 
   return (
     <Card className={cn("w-full max-w-md", className)}>
