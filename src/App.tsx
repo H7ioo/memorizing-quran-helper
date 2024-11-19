@@ -4,7 +4,7 @@ import ErrorPage from "./error-page.tsx";
 import { GameMenu } from "./components/game.tsx";
 import { Hero } from "./components/hero.tsx";
 import { Fahras } from "./components/fahras.tsx";
-import { MediaPlayer } from "./components/mediaPlayer.tsx";
+import { AudioPlayerPage } from "./components/mediaPlayer.tsx";
 
 const router = createBrowserRouter([
   {
@@ -22,8 +22,8 @@ const router = createBrowserRouter([
         element: <Fahras />,
       },
       {
-        path: "media-player/",
-        element: <MediaPlayer />,
+        path: "audio-player/",
+        element: <AudioPlayerPage />,
       },
     ],
   },
