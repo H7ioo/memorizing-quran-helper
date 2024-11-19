@@ -16,6 +16,13 @@ import { Slider } from "@/components/ui/slider";
 import { Button } from "@/components/ui/button";
 import { CardContent } from "@/components/ui/card";
 import { Label } from "./ui/label";
+import {
+  InputOTP,
+  InputOTPGroup,
+  // InputOTPSeparator, // TODO: update separator
+  InputOTPSlot,
+} from "@/components/ui/input-otp";
+import { REGEXP_ONLY_DIGITS } from "input-otp";
 
 export function MediaPlayer() {
   // const [file, setFile] = useState<File>();
@@ -30,12 +37,16 @@ export function MediaPlayer() {
   };
 
   // TODO: Clear button set value to null and files to null or undefined
-  // TODO: Looking good player start stop etc.
-  // TODO: video showing the feature on IG. 40-48min gd sm3a juz
+
+  /*
+    - Should I cut range completely so a new file or a new range only available from selected start-end time
+      - Limit the range
+      - Retype the range
+  */
 
   return (
     <div className="container py-10">
-      <div className="mx-auto flex max-w-md flex-col gap-2">
+      <div className="mx-auto flex max-w-xl flex-col gap-2">
         <div>
           <Label htmlFor="media">Audio File</Label>
           <Input
@@ -156,23 +167,24 @@ export default function AudioPlayer({
   };
 
   const formatTime = (time: number) => {
-    const minutes = Math.floor(time / 60);
+    const hours = Math.floor(time / 60 / 60);
+    const minutes = Math.floor((time / 60) % 60);
     const seconds = Math.floor(time % 60);
-    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
+    return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
   };
 
-  const handleStartTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newStartTime = isNaNFallback(parseFloat(e.target.value));
-    setStartTime(newStartTime);
-    if (audioRef.current && audioRef.current.currentTime < newStartTime) {
-      audioRef.current.currentTime = newStartTime;
-    }
-  };
+  // const handleStartTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   const newStartTime = isNaNFallback(parseFloat(e.target.value));
+  //   setStartTime(newStartTime);
+  //   if (audioRef.current && audioRef.current.currentTime < newStartTime) {
+  //     audioRef.current.currentTime = newStartTime;
+  //   }
+  // };
 
-  const handleEndTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newEndTime = isNaNFallback(parseFloat(e.target.value), duration);
-    setEndTime(newEndTime);
-  };
+  // const handleEndTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   const newEndTime = isNaNFallback(parseFloat(e.target.value), duration);
+  //   setEndTime(newEndTime);
+  // };
 
   const toggleLoop = () => {
     setLoop((prev) => !prev);
@@ -194,19 +206,52 @@ export default function AudioPlayer({
     }
   };
 
-  // TODO: Empty input feels better so allow the input to be empty and when empty it is the default.
-  const isNaNFallback = (number: number, fallback = 0) => {
-    return isNaN(number) ? fallback : number;
+  // // TODO: Empty input feels better so allow the input to be empty and when empty it is the default.
+  // const isNaNFallback = (number: number, fallback = 0) => {
+  //   return isNaN(number) ? fallback : number;
+  // };
+
+  const getOTPTimeValue = (time: number) => {
+    const hours = Math.floor(time / 60 / 60)
+      .toString()
+      .padStart(2, "0");
+    const minutes = Math.floor((time / 60) % 60)
+      .toString()
+      .padStart(2, "0");
+    const seconds = Math.floor(time % 60)
+      .toString()
+      .padStart(2, "0");
+
+    return `${hours}${minutes}${seconds}`;
   };
 
-  // TODO: Under "Start Time" & "End Time" add a button "Set to Current Time"
-  // TODO: Save to localstorage [{id: number, name: string, path: string, startTime: number, endTime: number}]
-  // TODO: Show saved files and locations with delete, edit (opens files to select a new file) etc. & select name. Improve over the idea
-  // TODO: Repeat X Times
-  // TODO: Repeat for 15 minutes w/ countdown
+  const isOTPDisabled = (group: "hours" | "minutes" | "seconds") => {
+    const time = {
+      hours: Math.floor((duration / 60 / 60) % 60),
+      minutes: Math.floor((duration / 60) % 60),
+      seconds: Math.floor(duration % 60),
+    };
+    return time[group] < 1;
+  };
+
+  const convertOTPValueToSeconds = (value: string) => {
+    // Ignores the hour value if it out of the time range
+    const valueWithPadding = value.toString().padStart(6, "0");
+    const hours = !isOTPDisabled("hours")
+      ? parseInt(valueWithPadding.slice(0, 2))
+      : 0;
+    const minutes = !isOTPDisabled("minutes")
+      ? parseInt(valueWithPadding.slice(2, 4))
+      : 0;
+    const seconds = !isOTPDisabled("seconds")
+      ? parseInt(valueWithPadding.slice(4, 6))
+      : 0;
+    const timeInSeconds = hours * 60 * 60 + minutes * 60 + seconds;
+    return timeInSeconds;
+  };
 
   return (
-    <Card className={cn("w-full max-w-md", className)}>
+    <Card className={cn("w-full max-w-xl", className)}>
       <audio ref={audioRef} src={src} />
       <CardContent className="p-6">
         <Slider
@@ -297,30 +342,120 @@ export default function AudioPlayer({
           </div>
         </div>
 
-        <div className="mt-4 grid grid-cols-2 gap-4">
-          <div>
-            <Label htmlFor="start-time">Start Time</Label>
-            <Input
-              id="start-time"
-              type="number"
-              min={0}
-              max={duration}
-              step={0.1}
-              value={startTime}
-              onChange={handleStartTimeChange}
-            />
+        <div className="mt-4 flex flex-col gap-2">
+          <div className="flex flex-col items-center gap-2 md:flex-row md:items-end">
+            <div>
+              <Label htmlFor="start-time">Start Time</Label>
+              {/* TODO: Input contains an input of type undefined with both value and defaultValue props */}
+              <InputOTP
+                maxLength={6}
+                pattern={REGEXP_ONLY_DIGITS}
+                onChange={(value) => {
+                  const timeInSeconds = convertOTPValueToSeconds(value);
+                  if (startTime === timeInSeconds) return;
+                  setStartTime(timeInSeconds);
+                }}
+                value={getOTPTimeValue(startTime)}
+              >
+                <InputOTPGroup>
+                  <InputOTPSlot index={0} disabled={isOTPDisabled("hours")} />
+                  <InputOTPSlot index={1} disabled={isOTPDisabled("hours")} />
+                </InputOTPGroup>
+                :
+                <InputOTPGroup>
+                  <InputOTPSlot index={2} disabled={isOTPDisabled("minutes")} />
+                  <InputOTPSlot index={3} disabled={isOTPDisabled("minutes")} />
+                </InputOTPGroup>
+                :
+                <InputOTPGroup>
+                  <InputOTPSlot index={4} disabled={isOTPDisabled("seconds")} />
+                  <InputOTPSlot index={5} disabled={isOTPDisabled("seconds")} />
+                </InputOTPGroup>
+              </InputOTP>
+            </div>
+            <Button
+              size="sm"
+              className="w-full max-w-[250px]"
+              onClick={() => {
+                if (!audioRef.current) return;
+                audioRef.current.currentTime = startTime - 3; // To have room for updating
+                setCurrentTime(startTime - 3);
+              }}
+            >
+              Go To
+            </Button>
+            <Button
+              size="sm"
+              className="w-full max-w-[250px]"
+              onClick={() => setStartTime(currentTime)}
+            >
+              Set To Current Track
+            </Button>{" "}
+            <Button
+              size="sm"
+              variant="destructive"
+              className="w-full max-w-[250px]"
+              onClick={() => setStartTime(0)}
+            >
+              Reset
+            </Button>
           </div>
-          <div>
-            <Label htmlFor="end-time">End Time</Label>
-            <Input
-              id="end-time"
-              type="number"
-              min={0}
-              max={duration}
-              step={0.1}
-              value={endTime}
-              onChange={handleEndTimeChange}
-            />
+          <div className="flex flex-col items-center gap-2 md:flex-row md:items-end">
+            <div>
+              <Label htmlFor="end-time">End Time</Label>
+              {/* TODO: Input contains an input of type undefined with both value and defaultValue props */}
+              <InputOTP
+                maxLength={6}
+                pattern={REGEXP_ONLY_DIGITS}
+                onChange={(value) => {
+                  const timeInSeconds = convertOTPValueToSeconds(value);
+                  if (endTime === timeInSeconds) return;
+                  setEndTime(timeInSeconds);
+                }}
+                value={getOTPTimeValue(endTime)}
+              >
+                <InputOTPGroup>
+                  <InputOTPSlot index={0} disabled={isOTPDisabled("hours")} />
+                  <InputOTPSlot index={1} disabled={isOTPDisabled("hours")} />
+                </InputOTPGroup>
+                :
+                <InputOTPGroup>
+                  <InputOTPSlot index={2} disabled={isOTPDisabled("minutes")} />
+                  <InputOTPSlot index={3} disabled={isOTPDisabled("minutes")} />
+                </InputOTPGroup>
+                :
+                <InputOTPGroup>
+                  <InputOTPSlot index={4} disabled={isOTPDisabled("seconds")} />
+                  <InputOTPSlot index={5} disabled={isOTPDisabled("seconds")} />
+                </InputOTPGroup>
+              </InputOTP>
+            </div>
+            <Button
+              size="sm"
+              className="w-full max-w-[250px]"
+              onClick={() => {
+                if (!audioRef.current) return;
+                audioRef.current.currentTime = endTime - 3; // To have room for updating
+                setCurrentTime(endTime - 3);
+              }}
+            >
+              Go To
+            </Button>
+            <Button
+              size="sm"
+              className="w-full max-w-[250px]"
+              onClick={() => setEndTime(currentTime)}
+            >
+              Set To Current Track
+            </Button>
+            <Button
+              size="sm"
+              variant="destructive"
+              className="w-full max-w-[250px]"
+              onClick={() => setEndTime(duration)}
+            >
+              Reset
+            </Button>
           </div>
         </div>
         <div className="mt-2">
@@ -331,7 +466,7 @@ export default function AudioPlayer({
           )}
           {(startTime > duration || endTime > duration) && (
             <span className="block text-xs text-red-400">
-              Length got exceeded. Please select in audio time range.
+              End time exceeded the original track.
             </span>
           )}
         </div>
