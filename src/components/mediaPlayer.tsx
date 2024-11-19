@@ -56,7 +56,7 @@ export function AudioPlayerPage() {
   );
 }
 
-export function AudioPlayer({
+export default function AudioPlayer({
   src,
   className,
 }: {
@@ -71,6 +71,8 @@ export function AudioPlayer({
   const [startTime, setStartTime] = useState(0);
   const [endTime, setEndTime] = useState(0);
   const audioRef = useRef<HTMLAudioElement>(null);
+  const startOTPRef = useRef<HTMLInputElement>(null);
+  const endOTPRef = useRef<HTMLInputElement>(null);
 
   const formatTime = useCallback((time: number) => {
     const hours = Math.floor(time / 3600);
@@ -78,6 +80,13 @@ export function AudioPlayer({
     const seconds = Math.floor(time % 60);
     return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
   }, []);
+
+  const getOTPTimeValue = useCallback(
+    (time: number) => {
+      return formatTime(time).replace(/:/g, "");
+    },
+    [formatTime],
+  );
 
   useEffect(() => {
     const audio = audioRef.current;
@@ -170,13 +179,6 @@ export function AudioPlayer({
       }
     },
     [duration],
-  );
-
-  const getOTPTimeValue = useCallback(
-    (time: number) => {
-      return formatTime(time).replace(/:/g, "");
-    },
-    [formatTime],
   );
 
   const isOTPDisabled = useCallback(
@@ -307,7 +309,15 @@ export function AudioPlayer({
           </div>
         </div>
         <div className="mt-4 flex flex-col gap-2">
-          {["start", "end"].map((type) => (
+          {[
+            {
+              type: "start",
+              time: startTime,
+              setter: setStartTime,
+              ref: startOTPRef,
+            },
+            { type: "end", time: endTime, setter: setEndTime, ref: endOTPRef },
+          ].map(({ type, time, setter, ref }) => (
             <div
               key={type}
               className="flex flex-col items-center gap-2 md:flex-row md:items-end"
@@ -319,12 +329,9 @@ export function AudioPlayer({
                 <InputOTP
                   maxLength={6}
                   pattern={REGEXP_ONLY_DIGITS}
-                  value={getOTPTimeValue(
-                    type === "start" ? startTime : endTime,
-                  )}
-                  onChange={handleTimeChange(
-                    type === "start" ? setStartTime : setEndTime,
-                  )}
+                  value={getOTPTimeValue(time)}
+                  onChange={handleTimeChange(setter)}
+                  ref={ref}
                 >
                   {["hours", "minutes", "seconds"].map((group, groupIndex) => (
                     <React.Fragment key={group}>
@@ -352,7 +359,6 @@ export function AudioPlayer({
                 className="w-full max-w-[250px]"
                 onClick={() => {
                   if (!audioRef.current) return;
-                  const time = type === "start" ? startTime : endTime;
                   audioRef.current.currentTime = Math.max(0, time - 3);
                   setCurrentTime(Math.max(0, time - 3));
                 }}
@@ -362,9 +368,7 @@ export function AudioPlayer({
               <Button
                 size="sm"
                 className="w-full max-w-[250px]"
-                onClick={() =>
-                  (type === "start" ? setStartTime : setEndTime)(currentTime)
-                }
+                onClick={() => setter(currentTime)}
               >
                 Set To Current Track
               </Button>
@@ -372,11 +376,7 @@ export function AudioPlayer({
                 size="sm"
                 variant="destructive"
                 className="w-full max-w-[250px]"
-                onClick={() =>
-                  (type === "start" ? setStartTime : setEndTime)(
-                    type === "start" ? 0 : duration,
-                  )
-                }
+                onClick={() => setter(type === "start" ? 0 : duration)}
               >
                 Reset
               </Button>

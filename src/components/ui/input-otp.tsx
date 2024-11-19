@@ -6,17 +6,53 @@ import { MinusIcon } from "@radix-ui/react-icons";
 const InputOTP = React.forwardRef<
   React.ElementRef<typeof OTPInput>,
   React.ComponentPropsWithoutRef<typeof OTPInput>
->(({ className, containerClassName, ...props }, ref) => (
-  <OTPInput
-    ref={ref}
-    containerClassName={cn(
-      "flex items-center gap-2 has-[:disabled]:opacity-50",
-      containerClassName,
-    )}
-    className={cn("disabled:cursor-not-allowed", className)}
-    {...props}
-  />
-));
+>(({ className, containerClassName, ...props }, ref) => {
+  const inputRef = React.useRef<HTMLInputElement>(null);
+
+  // TODO: fix selection goes to the end then to the clicked area
+
+  const handleContainerClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (inputRef.current) {
+      const containerRect = e.currentTarget.getBoundingClientRect();
+      const clickX = e.clientX - containerRect.left;
+      const slotWidth = containerRect.width / props.maxLength!;
+      const clickedSlotIndex = Math.floor(clickX / slotWidth);
+
+      inputRef.current.focus();
+      inputRef.current.setSelectionRange(
+        clickedSlotIndex,
+        clickedSlotIndex + 1,
+      );
+    }
+  };
+
+  const handleOTPDoubleClick = () => {
+    if (!inputRef.current) return;
+    inputRef.current.select();
+  };
+
+  return (
+    <div onClick={handleContainerClick} onDoubleClick={handleOTPDoubleClick}>
+      <OTPInput
+        ref={(node) => {
+          if (typeof ref === "function") {
+            ref(node);
+          } else if (ref) {
+            ref.current = node;
+          }
+          // @ts-ignore
+          inputRef.current = node as HTMLInputElement;
+        }}
+        containerClassName={cn(
+          "flex items-center gap-2 has-[:disabled]:opacity-50",
+          containerClassName,
+        )}
+        className={cn("disabled:cursor-not-allowed", className)}
+        {...props}
+      />
+    </div>
+  );
+});
 InputOTP.displayName = "InputOTP";
 
 const InputOTPGroup = React.forwardRef<
