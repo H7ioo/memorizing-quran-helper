@@ -27,28 +27,63 @@ import { REGEXP_ONLY_DIGITS } from "input-otp";
 import React, { useCallback } from "react";
 
 export function AudioPlayerPage() {
-  // const [file, setFile] = useState<File>();
   const [mediaURL, setMediaURL] = useState<string>("");
+  const [error, setError] = useState<string>("");
 
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setError("");
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
+      const fileExtension = `.${file.name.split(".").pop()?.toLowerCase()}`;
+
+      if (!supportedFileTypes.includes(fileExtension)) {
+        setError(
+          `Unsupported file type. Please upload one of: ${supportedFileTypes.join(", ")}`,
+        );
+        e.target.value = ""; // Reset input
+        return;
+      }
+
       const fileBlob = window.URL.createObjectURL(file);
       setMediaURL(fileBlob);
     }
   };
 
+  const supportedFileTypes = [
+    // Audio formats
+    ".mp3",
+    ".wav",
+    ".ogg",
+    ".m4a",
+    ".aac",
+    ".flac",
+    ".wma",
+    ".aiff",
+    ".alac",
+    // Video formats
+    ".mp4",
+    ".webm",
+    ".ogv",
+    ".mov",
+    ".avi",
+    ".wmv",
+    ".flv",
+    ".mkv",
+    ".m4v",
+  ];
+
   return (
     <div className="container py-10">
       <div className="mx-auto flex max-w-xl flex-col gap-2">
         <div>
-          <Label htmlFor="media">Audio File</Label>
+          <Label htmlFor="audio">Audio File</Label>
           <Input
-            id="media"
+            id="audio"
             type="file"
-            accept="audio/*,video/*"
+            accept={supportedFileTypes.join(",")}
             onChange={onFileChange}
           />
+          {error && <p className="mt-2 text-sm text-red-500">{error}</p>}
         </div>
         {mediaURL ? <AudioPlayer src={mediaURL} /> : "No file selected yet!"}
       </div>
