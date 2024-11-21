@@ -23,17 +23,19 @@ export function Navbar() {
           Play Game
         </Link>
         <Link
+          to="/audio-player"
+          className="text-sm font-medium underline-offset-4 hover:underline"
+          // prefetch={false}
+        >
+          Audio Player
+        </Link>
+        <Link
           to="/fahras"
           className="text-sm font-medium underline-offset-4 hover:underline"
           // prefetch={false}
         >
           Fahras
         </Link>
-        {/* <Link to="/prefrence" className="text-sm font-medium hover:underline underline-offset-4"
-      // prefetch={false}
-      >
-        Customize
-      </Link> */}
       </nav>
     </header>
   );
