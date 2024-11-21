@@ -218,12 +218,18 @@ export default function AudioPlayer({
 
   const isOTPDisabled = useCallback(
     (group: "hours" | "minutes" | "seconds") => {
-      const time = {
-        hours: Math.floor(duration / 3600),
-        minutes: Math.floor((duration % 3600) / 60),
-        seconds: Math.floor(duration % 60),
-      };
-      return time[group] < 1;
+      const totalSeconds = Math.floor(duration);
+
+      switch (group) {
+        case "hours":
+          return totalSeconds < 3600;
+        case "minutes":
+          return totalSeconds < 60;
+        case "seconds":
+          return totalSeconds === 0;
+        default:
+          return false;
+      }
     },
     [duration],
   );
